@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Technician Dashboard</title>
+    <link rel="stylesheet" href="/styles/style.css">
+</head>
+<body>
+
+<div class="container">
+    <h2>Technician Dashboard</h2>
+
+    <h3>Welcome, <%= user.name %></h3>
+
+    <p>This is your technician workspace.</p>
+
+
+<h3>🚨 P1 - Critical Tickets</h3>
+
+<table class="table">
+    <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Status</th>
+        <th>Assigned</th>
+        <th>Action</th>
+    </tr>
+
+    <% if (tickets.length === 0) { %>
+        <tr>
+            <td colspan="5">No critical tickets</td>
+        </tr>
+    <% } else { %>
+        <% tickets.forEach(ticket => { %>
+            <tr class="p1-row">
+                <td><%= ticket.ticket_id %></td>
+                <td><%= ticket.title %></td>
+                <td><%= ticket.status %></td>
+                <td>
+                    <%= ticket.technician_name || "Unassigned" %>
+                </td>
+                <td>
+                    <a href="/tickets/update/<%= ticket.ticket_id %>">View</a>
+                </td>
+            </tr>
+        <% }) %>
+    <% } %>
+</table>
+<a href="/technician/tickets">View All Tickets</a>
+    <a href="/technician/my-tickets">My Tickets</a>
+
+</div>
+
+</body>
+</html>

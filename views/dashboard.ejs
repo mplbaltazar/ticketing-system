@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Customer Dashboard</title>
+<link rel="stylesheet" href="/styles/style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h2>Dashboard</h2>
+        <a href="/tickets/create" class="btn create-btn">+ Create Ticket</a>
+        <a href="/logout" class="btn logout">Logout</a>
+    </div>
+
+    <div class="content">
+        <h3>Welcome, <%= user.name %></h3>
+        <p>
+            <strong>Contact:</strong> 
+            <%= user.contact ? user.contact : 'Not provided' %>
+          </p>
+        <h4>Your Tickets</h4>
+
+        <table class="table">
+            <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+
+            <% if (tickets.length === 0) { %>
+                <tr>
+                    <td colspan="5">No tickets found</td>
+                </tr>
+            <% } else { %>
+                <% tickets.forEach(ticket => { %>
+                    <tr>
+                        <td><%= ticket.ticket_id %></td>
+                        <td><%= ticket.title %></td>
+                        <td><%= ticket.priority %></td>
+                        <td><%= ticket.status %></td>
+                        <td><%= ticket.created_at %></td>
+                        <td>
+                            <% if (ticket.status !== 'closed') { %>
+                              <a href="/tickets/update/<%= ticket.ticket_id %>" class="btn-dashboard update-btn">
+                                Update
+                              </a>
+                            <% } else { %>
+                              <span class="text-muted">Closed</span>
+                            <% } %>
+                          </td>
+                    </tr>
+                <% }) %>
+            <% } %>
+
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>

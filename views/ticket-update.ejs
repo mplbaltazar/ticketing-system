@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Customer Ticket View</title>
+    <link rel="stylesheet" href="/styles/style.css">
+</head>
+<body>
+    <div class="container">
+    <div class="ticket-header">
+        <h2><%= ticket.title %></h2>
+    
+        <div class="ticket-meta">
+            <span class="status"><%= ticket.status %></span>
+            <span class="priority"><%= ticket.priority %></span>
+        </div>
+    
+        <p><strong>Assigned:</strong> 
+            <%= ticket.technician_name || "Waiting for assignment" %>
+        </p>
+    
+        <p class="description"><%= ticket.description %></p>
+    </div>
+<div class="comments-section">
+    <h4>Comments</h4>
+
+    <% if (comments.length === 0) { %>
+        <p>No comments yet</p>
+    <% } %>
+
+    <% comments.forEach(comment => { %>
+        <div class="comment <%= comment.role %>">
+            <div class="comment-header">
+                <strong><%= comment.full_name %></strong>
+            </div>
+    
+            <div class="comment-body">
+                <%= comment.comment %>
+            </div>
+    
+            <div class="comment-time">
+                <%= new Date(comment.created_at).toLocaleString() %>
+            </div>
+        </div>
+    <% }) %>
+</div>
+<form method="POST" action="/comments/add" class="comment-form">
+    <textarea name="comment" placeholder="Write a reply..." required></textarea>
+
+    <input type="hidden" name="ticket_id" value="<%= ticket.ticket_id %>">
+
+    <button type="submit">Send</button>
+</form>
+<% if (ticket.status !== 'closed') { %>
+    <form method="POST" action="/tickets/close">
+        <input type="hidden" name="ticket_id" value="<%= ticket.ticket_id %>">
+        <button class="close-btn">Close Ticket</button>
+    </form>
+<% } %>
+    </div>
+</body>
+</html>
