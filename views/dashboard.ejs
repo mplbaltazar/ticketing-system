@@ -19,8 +19,18 @@
         <p>
             <strong>Contact:</strong> 
             <%= user.contact ? user.contact : 'Not provided' %>
-          </p>
-        <h4>Your Tickets</h4>
+        
+            <button onclick="toggleContactForm()" class="btn-dashboard">
+                Edit
+            </button>
+        </p>
+        
+        <div id="contactForm" style="display:none; margin-top:10px;">
+            <form action="/update-contact" method="POST">
+                <input type="text" name="contact" placeholder="Enter new contact" maxlength="20" pattern="[0-9]+" required>
+                <button type="submit" class="btn-dashboard">Save</button>
+            </form>
+        </div>
 
         <table class="table">
             <tr>
@@ -45,14 +55,11 @@
                         <td><%= ticket.status %></td>
                         <td><%= ticket.created_at %></td>
                         <td>
-                            <% if (ticket.status !== 'closed') { %>
-                              <a href="/tickets/update/<%= ticket.ticket_id %>" class="btn-dashboard update-btn">
-                                Update
-                              </a>
-                            <% } else { %>
-                              <span class="text-muted">Closed</span>
-                            <% } %>
-                          </td>
+                            
+                            <a href="/tickets/view/<%= ticket.ticket_id %>" class="btn-dashboard view-btn">
+                                View
+                            </a>
+                        </td>
                     </tr>
                 <% }) %>
             <% } %>
@@ -64,3 +71,10 @@
 
 </body>
 </html>
+
+<script>
+    function toggleContactForm() {
+        const form = document.getElementById("contactForm");
+        form.style.display = form.style.display === "none" ? "block" : "none";
+    }
+    </script>

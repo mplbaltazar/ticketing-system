@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Technician Dashboard</title>
+    <link rel="stylesheet" href="/styles/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2><%= dashtitle %></h2>
+        </div>
+        <div class="content">
+            <table class="table">
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            
+                <% if (tickets.length === 0) { %>
+                    <tr>
+                        <td colspan="5">No tickets found</td>
+                    </tr>
+                <% } else { %>
+                    <% tickets.forEach(ticket => { %>
+                        <tr>
+                            <td><%= ticket.ticket_id %></td>
+                            <td><%= ticket.title %></td>
+                            <td><%= ticket.priority %></td>
+                            <td><%= ticket.status %></td>
+                            <td><%= ticket.created_at %></td>
+                            <td>
+                                <a href="/tickets/view/<%= ticket.ticket_id %>" class="btn-dashboard view-btn">
+                                    View
+                                </a>
+                            </td>
+                        </tr>
+                    <% }) %>
+                <% } %>
+            </table>
+        </div>
+    </div>
+    
+</body>
+

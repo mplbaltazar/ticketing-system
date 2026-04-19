@@ -7,31 +7,39 @@
 <body>
 
 <div class="container">
-
     <h2>Create Ticket</h2>
+    <form action="/tickets/create" method="POST" class="form-create">
+        <label>Title</label>
+        <input type="text" name="title" required>
+        <label>Description (Describe your issue)</label>
+        <textarea name="description" required></textarea>
+        <small>This will be the first message in your ticket conversation</small>
+        <label>Priority</label>
+            <select name="priority">
+                <option value="P1">P1 - Critical</option>
+                <option value="P2">P2 - High</option>
+                <option value="P3" selected>P3 - Medium</option>
+                <option value="P4">P4 - Low</option>
+                <option value="P5">P5 - Very Low</option>
+            </select>
 
-<form action="/tickets/create" method="POST" class="form-create">
-
-    <label>Title</label>
-    <input type="text" name="title" required>
-
-    <label>Description (Describe your issue)</label>
-    <textarea name="description" required></textarea>
-    <small>This will be the first message in your ticket conversation</small>
-
-    <label>Priority</label>
-    <select name="priority">
-        <option value="P1">P1 - Critical</option>
-        <option value="P2">P2 - High</option>
-        <option value="P3" selected>P3 - Medium</option>
-        <option value="P4">P4 - Low</option>
-        <option value="P5">P5 - Very Low</option>
-    </select>
+        <% if (role === 'technician') { %>
+            <select name="assigned_to">
+                <option value="">Unassigned</option>
+                <option value="<%= currentUserId %>" selected>Assign to Me</option>
+                <% technicians.forEach(tech => { %>
+                    <% if (tech.user_id !== currentUserId) { %>
+                        <option value="<%= tech.user_id %>">
+                            <%= tech.full_name %>
+                        </option>
+                    <% } %>
+                <% }) %>
+            </select>
+    <% } %>
 
     <button type="submit" class="btn create-btn">Submit Ticket</button>
 
-</form>
-
+    </form>
 </div>
 
 </body>

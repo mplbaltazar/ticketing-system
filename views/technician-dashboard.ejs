@@ -6,23 +6,41 @@
 </head>
 <body>
 
+
+
 <div class="container">
-    <h2>Technician Dashboard</h2>
-
-    <h3>Welcome, <%= user.name %></h3>
-
-    <p>This is your technician workspace.</p>
-
-
-<h3>🚨 P1 - Critical Tickets</h3>
+    <div class="header">
+        <h2>Technician Dashboard</h2>
+        <h3>Welcome, <%= user.name %></h3>
+        <p>
+            <strong>Contact:</strong> 
+            <%= user.contact ? user.contact : 'Not provided' %>
+        
+            <button onclick="toggleContactForm()" class="btn-dashboard">
+                Edit
+            </button>
+        </p>
+        <div id="contactForm" style="display:none; margin-top:10px;">
+            <form action="/update-contact" method="POST">
+                <input type="text" name="contact" placeholder="Enter new contact" maxlength="20" pattern="[0-9]+" required>
+                <input type="hidden" name="redirectTo" value="/technician" />
+                <button type="submit" class="btn-dashboard">Save</button>
+            </form>
+        </div>
+        <a href="/tickets/create" class="btn create-btn">+ Create Ticket</a>
+        <a href="/logout" class="btn logout">Logout</a>
+    </div>
+    <div class="content">
+        <h3>🚨 P1 - Critical Tickets</h3>
 
 <table class="table">
     <tr>
         <th>ID</th>
         <th>Title</th>
+        <th>Priority</th>
         <th>Status</th>
-        <th>Assigned</th>
-        <th>Action</th>
+        <th>Date</th>
+        <th>Actions</th>
     </tr>
 
     <% if (tickets.length === 0) { %>
@@ -32,23 +50,36 @@
     <% } else { %>
         <% tickets.forEach(ticket => { %>
             <tr class="p1-row">
-                <td><%= ticket.ticket_id %></td>
-                <td><%= ticket.title %></td>
-                <td><%= ticket.status %></td>
-                <td>
-                    <%= ticket.technician_name || "Unassigned" %>
-                </td>
-                <td>
-                    <a href="/tickets/update/<%= ticket.ticket_id %>">View</a>
-                </td>
+                <tr>
+                    <td><%= ticket.ticket_id %></td>
+                    <td><%= ticket.title %></td>
+                    <td><%= ticket.priority %></td>
+                    <td><%= ticket.status %></td>
+                    <td><%= ticket.created_at %></td>
+                    <td>
+                        <a href="/tickets/view/<%= ticket.ticket_id %>" class="btn-dashboard view-btn">
+                            View
+                        </a>
+                    </td>
+                </tr>
             </tr>
         <% }) %>
     <% } %>
 </table>
-<a href="/technician/tickets">View All Tickets</a>
-    <a href="/technician/my-tickets">My Tickets</a>
+    <a href="/tickets/all" class="btn">View All Tickets</a>
+    <a href="/tickets/my" class="btn">My Tickets</a>
+    </div>    
+
+
 
 </div>
 
 </body>
 </html>
+
+<script>
+    function toggleContactForm() {
+        const form = document.getElementById("contactForm");
+        form.style.display = form.style.display === "none" ? "block" : "none";
+    }
+    </script>
