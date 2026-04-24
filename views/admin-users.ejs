@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Management</title>
+    <link rel="stylesheet" href="/styles/style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h2>User Management</h2>
+        <a href="/admin" class="btn">Back to Admin</a>
+        <a href="/admin/users/new" class="btn">+ Add User</a>
+        <a href="/logout" class="btn logout">Logout</a>
+    </div>
+
+    <div class="card">
+        <h3>All Users</h3>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Contact</th>
+                    <th>Created</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% users.forEach(u => { %>
+                    <tr>
+                        <td><%= u.user_id %></td>
+                        <td><%= u.full_name %></td>
+                        <td><%= u.email %></td>
+                        <td><%= u.role %></td>
+                        <td><%= u.contact || 'N/A' %></td>
+                        <td><%= new Date(u.created_at).toLocaleString('en-PH', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        }) %></td>
+                        <td><%= u.status %></td>
+                        <td>
+                            <% if (u.user_id !== user.id) { %>
+                                <form action="/admin/users/update-role" method="POST">
+                                    <input type="hidden" name="user_id" value="<%= u.user_id %>">
+                                    <select name="role">
+                                        <option value="customer" <%= u.role === 'customer' ? 'selected' : '' %>>Customer</option>
+                                        <option value="technician" <%= u.role === 'technician' ? 'selected' : '' %>>Technician</option>
+                                        <option value="admin" <%= u.role === 'admin' ? 'selected' : '' %>>Admin</option>
+                                    </select>
+                                    <button type="submit" class="btn">Update</button>
+                                </form>
+                                <a href="/admin/users/edit/<%= u.user_id %>" class="btn">Edit</a>
+                                <form action="/admin/users/toggle-status" method="POST">
+                                    <input type="hidden" name="user_id" value="<%= u.user_id %>">
+                                    <input type="hidden" name="status" value="<%= u.status === 'active' ? 'inactive' : 'active' %>">
+                                    <button type="submit" class="btn">
+                                        <%= u.status === 'active' ? 'Deactivate' : 'Activate' %>
+                                    </button>
+                                </form>
+                            <% } else { %>
+                                <span>You</span>
+                            <% } %>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+
+    </div>
+
+</div>
+
+</body>
+</html>

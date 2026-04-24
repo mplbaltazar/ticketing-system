@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Management</title>
+    <link rel="stylesheet" href="/styles/style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h2>Edit User</h2>
+        <a href="/admin/users" class="btn">Back</a>
+    </div>
+
+    <div class="card">
+        <form action="/admin/users/update" method="POST">
+
+            <input type="hidden" name="user_id" value="<%= editUser.user_id %>">
+
+            <label>Full Name</label>
+            <input type="text" name="full_name" value="<%= editUser.full_name %>" required>
+
+            <label>Email (readonly)</label>
+            <input type="email" value="<%= editUser.email %>" disabled>
+
+            <label>Contact</label>
+            <input type="text" name="contact" value="<%= editUser.contact || '' %>">
+
+            <label>Position</label>
+            <input type="text" name="position" value="<%= editUser.position || '' %>">
+
+            <label>Role</label>
+            <select name="role">
+                <option value="customer" <%= editUser.role === 'customer' ? 'selected' : '' %>>Customer</option>
+                <option value="technician" <%= editUser.role === 'technician' ? 'selected' : '' %>>Technician</option>
+                <option value="admin" <%= editUser.role === 'admin' ? 'selected' : '' %>>Admin</option>
+            </select>
+
+            <label>Status</label>
+            <select name="status">
+                <option value="active" <%= editUser.status === 'active' ? 'selected' : '' %>>Active</option>
+                <option value="inactive" <%= editUser.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+            </select>
+
+            <button type="submit" class="btn">Save Changes</button>
+
+        </form>
+    </div>
+
+</div>
+</body>

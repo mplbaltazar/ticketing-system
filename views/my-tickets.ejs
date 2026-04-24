@@ -8,6 +8,8 @@
     <div class="container">
         <div class="header">
             <h2><%= dashtitle %></h2>
+            <a href="<%= backUrl %>" class="btn">Back</a>
+            <a href="/logout" class="btn logout">Logout</a>
         </div>
         <div class="content">
             <table class="table">
@@ -31,7 +33,12 @@
                             <td><%= ticket.title %></td>
                             <td><%= ticket.priority %></td>
                             <td><%= ticket.status %></td>
-                            <td><%= ticket.created_at %></td>
+                            <td><%= new Date(ticket.created_at).toLocaleString('en-PH', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            }) %></td>
                             <td>
                                 <a href="/tickets/view/<%= ticket.ticket_id %>" class="btn-dashboard view-btn">
                                     View

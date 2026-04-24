@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="/styles/style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h2>Admin Dashboard</h2>
+        <div>
+            <a href="/tickets/all" class="btn">View All Tickets</a>
+            <a href="/logout" class="btn logout">Logout</a>
+        </div>
+    </div>
+    <div class="card">
+        <h3>System Overview (Coming Soon)</h3>
+        <p>Total tickets, open vs closed, technician workload</p>
+    </div>
+    <div class="admin-grid">
+
+        <div class="card">
+            <h3>User Management</h3>
+            <a href="/admin/users" class="btn">Manage Users</a>
+            <p>View, create, edit, and assign roles.</p>
+        </div>
+
+        <div class="card">
+            <h3>Ticket Control</h3>
+            <a href="/tickets/all" class="btn">Manage Tickets</a>
+            <p>Assign technicians, close/reopen tickets.</p>
+        </div>
+
+        <div class="card">
+            <h3>Technician Management</h3>
+            <a href="/admin/technicians" class="btn">View Technicians</a>
+            <p>Monitor and assign workload.</p>
+        </div>
+
+        <div class="card">
+            <h3>Data Control</h3>
+            <p>Cleanup tickets (future feature)</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

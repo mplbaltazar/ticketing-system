@@ -6,6 +6,11 @@
 </head>
 <body>
     <div class="container">
+        <div class="header">
+            <h2>User Management</h2>
+            <a href="<%= backUrl %>" class="btn">Back</a>
+            <a href="/logout" class="btn logout">Logout</a>
+        </div>
     <div class="ticket-header">
         <h2><%= ticket.title %></h2>
         <div class="ticket-meta">
@@ -40,7 +45,7 @@
         <p><strong>Assigned:</strong> 
             <%= ticket.technician_name || "Waiting for assignment" %>
         </p>
-        <% if (role === 'technician' && ticket.status !== 'closed') { %>
+        <% if ((role === 'technician' || role === 'admin') && ticket.status !== 'closed') { %>
             <div class="assign-section">
                 <h4>Assign Ticket</h4>
                 <form method="POST" action="/tickets/assign">
@@ -75,7 +80,12 @@
     <% comments.forEach(comment => { %>
         <div class="comment <%= comment.role %>">
             <div class="comment-header">
-                <strong><%= comment.full_name %></strong>
+                <strong>
+                    <%= comment.full_name %>
+                    <% if (comment.role === 'admin') { %>
+                        <span class="role-tag admin-tag">(Admin)</span>
+                    <% } %>
+                </strong>
             </div>
     
             <div class="comment-body">
@@ -88,7 +98,7 @@
         </div>
     <% }) %>
 </div>
-<% if (ticket.status !== 'closed') { %>
+<% if (ticket.status !== 'closed' && (userId === ticket.created_by || userId === ticket.assigned_to || role === 'admin')) { %>
     <form method="POST" action="/comments/add" class="comment-form">
         <textarea name="comment" placeholder="Write a reply..." required></textarea>
 
@@ -96,7 +106,7 @@
 
         <button type="submit">Send</button>
     </form>
-<% } if (ticket.status === 'closed') { %>
+<% } if (ticket.status === 'closed' && (userId === ticket.created_by || role === 'admin')) { %>
     <p class="text-muted">This ticket is closed. Comments are disabled.</p>
     <form method="POST" action="/tickets/reopen" onsubmit="return getReopenReason()">
         <input type="hidden" name="ticket_id" value="<%= ticket.ticket_id %>">
@@ -105,7 +115,7 @@
         <button class="reopen-btn">Reopen Ticket</button>
     </form>
 <% } %>
-<% if (ticket.status !== 'closed') { %>
+<% if (ticket.status !== 'closed' && (userId === ticket.created_by || userId === ticket.assigned_to || role === 'admin')) { %>
     <form method="POST" action="/tickets/close">
         <input type="hidden" name="ticket_id" value="<%= ticket.ticket_id %>">
         <button class="close-btn" onclick="return confirm('Are you sure you want to close this ticket?')">
