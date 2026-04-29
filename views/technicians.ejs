@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="/styles/style.css">
+</head>
+<body>
+    <h2>Technicians</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Position</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        <% technicians.forEach(tech => { %>
+            <tr>
+                <td><%= tech.full_name %></td>
+                <td><%= tech.email %></td>
+                <td><%= tech.position %></td>
+                <td>
+                    <a href="/admin/technicians/<%= tech.user_id %>">View</a>
+                </td>
+            </tr>
+        <% }) %>
+    </tbody>
+</table>
+</body>
