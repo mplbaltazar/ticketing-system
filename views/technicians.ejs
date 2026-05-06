@@ -4,8 +4,14 @@
     <title>Admin Dashboard</title>
     <link rel="stylesheet" href="/styles/style.css">
 </head>
+<%- include('header') %>
 <body>
-    <h2>Technicians</h2>
+    <div class="container">
+        <div class="header">
+            <h2>Technician Management</h2>
+            <a href="<%= backUrl %>" class="btn">Back</a>
+            <a href="#" onclick="confirmLogout()" class="btn logout-btn">Logout</a>
+        </div>
 
 <table>
     <thead>
@@ -13,6 +19,8 @@
             <th>Name</th>
             <th>Email</th>
             <th>Position</th>
+            <th>Open Tickets</th>
+            <th>Total Tickets</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -22,11 +30,21 @@
                 <td><%= tech.full_name %></td>
                 <td><%= tech.email %></td>
                 <td><%= tech.position %></td>
+                <td><%= tech.open_tickets || 0 %></td>
+                <td><%= tech.total_tickets || 0 %></td>
                 <td>
-                    <a href="/admin/technicians/<%= tech.user_id %>">View</a>
+                    <a href="/admin/technician/<%= tech.user_id %>/tickets">View Tickets</a>
                 </td>
             </tr>
         <% }) %>
     </tbody>
 </table>
 </body>
+
+<script>
+    function confirmLogout() {
+        showConfirm("Are you sure you want to logout?", function () {
+            window.location.href = "/logout";
+        });
+    }
+</script>

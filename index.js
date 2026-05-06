@@ -134,6 +134,7 @@ app.get('/dashboard', checkActiveUser, async (req, res) => {
         const tickets = Array.isArray(rows) ? rows : [];
         res.render('dashboard', {
             user: sessionUser,
+            backUrl:'/dashboard',
             tickets
         });
     } catch (err) {
@@ -293,29 +294,6 @@ app.post('/admin/users/create', checkActiveUser, requireRole('admin'), async (re
     }
 });
 
-app.post('/admin/users/delete', checkActiveUser, requireRole('admin'), async (req, res) => {
-    try {
-        const { user_id } = req.body;
-        if (!user_id || isNaN(user_id)) {
-            return res.send('Invalid user ID');
-        }
-        if (parseInt(user_id) === req.session.user.id) {
-            return res.send('You cannot deactivate your own account');
-        }
-        const sql = "UPDATE users SET status = 'inactive' WHERE user_id = ?";
-        const [result] = await db.query(sql, [
-            user_id
-        ]);
-        if (result.affectedRows === 0) {
-            return res.send('User not found');
-        }
-        res.redirect('/admin/users');
-    }catch (err){
-        console.error("Deactive User Error:", err);
-        res.status(500).send("Error deactivating user");
-    }
-});
-
 app.post('/admin/users/toggle-status', checkActiveUser, requireRole('admin'), async (req, res) => {
     try{
         const { user_id, status } = req.body;
@@ -417,17 +395,58 @@ app.post('/admin/users/update', checkActiveUser, requireRole('admin'), async (re
     }
 });
 
-app.get('/admin/technicians', async (req, res) => {
+app.get('/admin/technicians', checkActiveUser, requireRole('admin'), async (req, res) => {
     try {
-        const [rows] = await db.query(
-            "SELECT user_id, full_name, email, position FROM users WHERE role = 'technician'"
-        );
-
-        res.render('technicians', { technicians: rows });
+        const [rows] = await db.query(`
+        SELECT u.user_id, u.full_name, u.email, u.position,
+        COUNT(t.ticket_id) AS total_tickets,
+        SUM(CASE WHEN t.status = 'open' THEN 1 ELSE 0 END) AS open_tickets
+        FROM users u
+        LEFT JOIN tickets t ON u.user_id = t.assigned_to
+        WHERE u.role = 'technician'
+        GROUP BY u.user_id
+        `);
+        if (!rows) {
+            return res.status(404).send("Technician not found");
+        }
+        res.render('technicians', { 
+            technicians: rows,
+            backUrl: '/admin'
+        });
 
     } catch (err) {
-        console.error(err);
-        res.send("Error loading technicians");
+        console.error("Viewing technicians error:", err);
+        res.status(500).send("Error viewing technicians");
+    }
+});
+
+app.get('/admin/technician/:id/tickets', checkActiveUser, requireRole('admin'), async (req, res) => {
+    try {
+        const techId = req.params.id;
+        
+        if (!techId || isNaN(techId)) {
+            return res.status(400).send("Invalid technician ID");
+        }
+        const [[tech]] = await db.query(
+            "SELECT full_name FROM users WHERE user_id = ? AND role = 'technician'",
+            [techId]
+        );
+        if (!tech) {
+            return res.status(404).send("Technician not found");
+        }
+        const [tickets] = await db.query(
+            "SELECT * FROM tickets WHERE assigned_to = ?",
+            [techId]
+        );
+        res.render('my-tickets', {
+            tickets,
+            dashtitle: `${tech.full_name}'s Tickets`,
+            currentUrl: `/admin/technician/${techId}/tickets`,
+            backUrl: '/admin/technicians'
+        });
+    } catch (err) {
+        console.error("Error fetching technician tickets:", err);
+        res.status(500).send("Error loading tickets");
     }
 });
 
@@ -466,6 +485,7 @@ app.get('/tickets/create', checkActiveUser, async (req, res) => {
     try {
         const role = req.session.user.role;
         const userId = req.session.user.id;
+        const backUrl = req.query.backUrl;
         if (!role || !userId) {
             return res.redirect('/');
         }
@@ -482,6 +502,7 @@ app.get('/tickets/create', checkActiveUser, async (req, res) => {
         res.render('create-ticket', {
             role,
             technicians,
+            backUrl,
             currentUserId: role === 'technician' ? userId : null
         });
 
@@ -562,6 +583,7 @@ app.post('/tickets/create', checkActiveUser, async (req, res) => {
 app.get('/tickets/view/:id', checkActiveUser, async (req, res) => {
     try {
         const ticketId = req.params.id;
+        const backUrl = req.query.backUrl;
         if (!ticketId || isNaN(ticketId)) {
             return res.send("Invalid ticket ID");
         }
@@ -609,11 +631,13 @@ app.get('/tickets/view/:id', checkActiveUser, async (req, res) => {
             technicians,
             role,
             userId,
-            backUrl: role === 'admin'
-                ? '/admin'
-                : role === 'technician'
-                ? '/technician'
-                : '/dashboard'
+            backUrl: backUrl || (
+                role === 'admin'
+                    ? '/admin'
+                    : role === 'technician'
+                    ? '/technician'
+                    : '/dashboard'
+            )
         });
     } catch (err) {
         console.error("View ticket error:", err);
@@ -639,6 +663,7 @@ app.get('/tickets/my', checkActiveUser, async (req, res) => {
         res.render('my-tickets', { 
             tickets: rows,
             dashtitle: 'My Tickets',
+            currentUrl: '/tickets/my',
             backUrl: role === 'admin' 
                 ? '/admin' 
                 : role === 'technician' 
@@ -674,6 +699,7 @@ app.get('/tickets/all', checkActiveUser, async (req, res) => {
         res.render('my-tickets', { 
             tickets: rows,
             dashtitle: 'All Tickets',
+            currentUrl: '/tickets/all',
             backUrl: role === 'admin' ? '/admin' : '/technician'
         });
 

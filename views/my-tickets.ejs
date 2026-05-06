@@ -4,12 +4,16 @@
     <title>Technician Dashboard</title>
     <link rel="stylesheet" href="/styles/style.css">
 </head>
+<%- include('header') %>
 <body>
     <div class="container">
+        <% const safeUrl = typeof currentUrl !== 'undefined' ? currentUrl : '/technician'; %>
         <div class="header">
             <h2><%= dashtitle %></h2>
-            <a href="<%= backUrl %>" class="btn">Back</a>
-            <a href="/logout" class="btn logout">Logout</a>
+            <div class="header-actions">
+                <a href="<%= backUrl %>" class="btn">Back</a>
+                <a href="#" onclick="confirmLogout()" class="btn logout-btn">Logout</a>
+            </div>
         </div>
         <div class="content">
             <table class="table">
@@ -40,7 +44,7 @@
                                 minute: '2-digit'
                             }) %></td>
                             <td>
-                                <a href="/tickets/view/<%= ticket.ticket_id %>" class="btn-dashboard view-btn">
+                                <a href="/tickets/view/<%= ticket.ticket_id %>?backUrl=<%= safeUrl %>" class="btn-dashboard view-btn">
                                     View
                                 </a>
                             </td>
@@ -50,6 +54,12 @@
             </table>
         </div>
     </div>
-    
 </body>
 
+<script>
+    function confirmLogout() {
+        showConfirm("Are you sure you want to logout?", function () {
+            window.location.href = "/logout";
+        });
+    }
+</script>

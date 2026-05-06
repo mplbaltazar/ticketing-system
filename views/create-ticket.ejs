@@ -4,11 +4,17 @@
     <title>Customer Create Ticket</title>
     <link rel="stylesheet" href="/styles/style.css">
 </head>
+<%- include('header') %>
 <body>
-
 <div class="container">
-    <h2>Create Ticket</h2>
-    <form action="/tickets/create" method="POST" class="form-create">
+    <div class="header">
+        <h2>Create a New Ticket</h2>
+	    <div class="header-actions">
+        	<a href="<%= backUrl %>" class="btn">Back</a>
+        	<a href="#" onclick="confirmLogout()" class="btn logout-btn">Logout</a>
+	    </div>
+    </div>
+    <form id="createTicketForm" action="/tickets/create" method="POST" class="form-create">
         <label>Title</label>
         <input type="text" name="title" required>
         <label>Description (Describe your issue)</label>
@@ -37,10 +43,22 @@
             </select>
     <% } %>
 
-    <button type="submit" class="btn create-btn">Submit Ticket</button>
+    <button type="button" class="btn create-btn" onclick="confirmCreateTicket()">Create Ticket</button>
 
     </form>
 </div>
-
 </body>
 </html>
+
+<script>
+    function confirmLogout() {
+        showConfirm("Are you sure you want to logout?", function () {
+            window.location.href = "/logout";
+        });
+    }
+    function confirmCreateTicket() {
+    showConfirm("Are you sure you want to create this ticket?", function () {
+        document.getElementById("createTicketForm").submit();
+    });
+}
+</script>

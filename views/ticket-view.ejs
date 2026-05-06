@@ -4,12 +4,15 @@
     <title>Ticket View</title>
     <link rel="stylesheet" href="/styles/style.css">
 </head>
+<%- include('header') %>
 <body>
     <div class="container">
         <div class="header">
-            <h2>User Management</h2>
-            <a href="<%= backUrl %>" class="btn">Back</a>
-            <a href="/logout" class="btn logout">Logout</a>
+            <h2>Ticket View</h2>
+            <div class="header-actions">
+                <a href="<%= backUrl %>" class="btn">Back</a>
+                <a href="#" onclick="confirmLogout()" class="btn logout-btn">Logout</a>
+            </div>
         </div>
     <div class="ticket-header">
         <h2><%= ticket.title %></h2>
@@ -64,7 +67,7 @@
                             </option>
                         <% }) %>
                     </select>
-                    <button type="submit">Assign</button>
+                    <button type="submit" class="btn">Assign</button>
                 </form>
             </div>
         <% } %>
@@ -112,13 +115,13 @@
         <input type="hidden" name="ticket_id" value="<%= ticket.ticket_id %>">
         <input type="hidden" name="reopen_reason" id="reopen_reason">
         
-        <button class="reopen-btn">Reopen Ticket</button>
+        <button class="btn reopen-btn">Reopen Ticket</button>
     </form>
 <% } %>
 <% if (ticket.status !== 'closed' && (userId === ticket.created_by || userId === ticket.assigned_to || role === 'admin')) { %>
-    <form method="POST" action="/tickets/close">
+    <form id="closeTicketForm-<%= ticket.ticket_id %>" action="/tickets/close" method="POST">
         <input type="hidden" name="ticket_id" value="<%= ticket.ticket_id %>">
-        <button class="close-btn" onclick="return confirm('Are you sure you want to close this ticket?')">
+        <button type="button" class="btn btn-danger" onclick="confirmCloseTicket('<%= ticket.ticket_id %>')">
             Close Ticket
         </button>
     </form>
@@ -138,5 +141,15 @@
     
         document.getElementById("reopen_reason").value = reason;
         return true;
+    }
+    function confirmCloseTicket(ticketId) {
+        showConfirm("Are you sure you want to close this ticket?", function () {
+        document.getElementById("closeTicketForm-" + ticketId).submit();
+    });
+}
+    function confirmLogout() {
+        showConfirm("Are you sure you want to logout?", function () {
+            window.location.href = "/logout";
+        });
     }
     </script>

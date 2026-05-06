@@ -5,13 +5,18 @@
 <link rel="stylesheet" href="/styles/style.css">
 </head>
 <body>
-
+    <%- include('header') %>
 <div class="container">
-
     <div class="header">
-        <h2>Dashboard</h2>
-        <a href="/tickets/create" class="btn create-btn">+ Create Ticket</a>
-        <a href="/logout" class="btn logout">Logout</a>
+        <h2>Client Dashboard</h2>
+        <div class="header-actions">
+            <a href="/tickets/create?backUrl=<%= backUrl %>" class="btn create-btn">
+                + Create Ticket
+            </a>
+            <a href="#" onclick="confirmLogout()" class="btn logout-btn">
+                Logout
+            </a>
+        </div>
     </div>
 
     <div class="content">
@@ -19,16 +24,14 @@
         <p>
             <strong>Contact:</strong> 
             <%= user.contact ? user.contact : 'Not provided' %>
-        
-            <button onclick="toggleContactForm()" class="btn-dashboard">
-                Edit
-            </button>
+            <button onclick="toggleContactForm(this)" class="btn">Edit</button>
         </p>
         
-        <div id="contactForm" style="display:none; margin-top:10px;">
-            <form action="/update-contact" method="POST">
+        <div id="contactForm" class="contact-card" style="display: none;">
+            <p class="contact-title">Update your contact number</p>
+            <form id="contactFormSubmit" action="/update-contact" method="POST">
                 <input type="text" name="contact" placeholder="Enter new contact" maxlength="20" pattern="[0-9]+" required>
-                <button type="submit" class="btn-dashboard">Save</button>
+                <button type="button" class="btn" onclick="confirmSaveContact()">Save</button>
             </form>
         </div>
 
@@ -53,10 +56,15 @@
                         <td><%= ticket.title %></td>
                         <td><%= ticket.priority %></td>
                         <td><%= ticket.status %></td>
-                        <td><%= ticket.created_at %></td>
+                        <td><%= new Date(ticket.created_at).toLocaleString('en-PH', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        }) %></td>
                         <td>
                             
-                            <a href="/tickets/view/<%= ticket.ticket_id %>" class="btn-dashboard view-btn">
+                            <a href="/tickets/view/<%= ticket.ticket_id %>" class="btn">
                                 View
                             </a>
                         </td>
@@ -73,8 +81,25 @@
 </html>
 
 <script>
-    function toggleContactForm() {
+   function toggleContactForm(btn) {
         const form = document.getElementById("contactForm");
-        form.style.display = form.style.display === "none" ? "block" : "none";
+        const isHidden = form.style.display === "none" || form.style.display === "";
+        if (isHidden) {
+            form.style.display = "block";
+            btn.innerText = "Hide";
+        } else {
+            form.style.display = "none";
+            btn.innerText = "Edit";
+        }
     }
-    </script>
+    function confirmLogout() {
+        showConfirm("Are you sure you want to logout?", function () {
+        window.location.href = "/logout";
+        });
+    }
+    function confirmSaveContact() {
+        showConfirm("Save changes to contact number?", function () {
+        document.getElementById("contactFormSubmit").submit();
+    });
+    }
+</script>

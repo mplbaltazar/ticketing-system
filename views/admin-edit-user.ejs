@@ -5,12 +5,14 @@
     <link rel="stylesheet" href="/styles/style.css">
 </head>
 <body>
-
+    <%- include('header') %>
 <div class="container">
 
     <div class="header">
         <h2>Edit User</h2>
         <a href="/admin/users" class="btn">Back</a>
+        <a href="#" onclick="confirmLogout()" class="btn logout-btn">Logout</a>
+
     </div>
 
     <div class="card">
@@ -50,3 +52,11 @@
 
 </div>
 </body>
+
+<script>
+    function confirmLogout() {
+        showConfirm("Are you sure you want to logout?", function () {
+            window.location.href = "/logout";
+        });
+    }
+</script>
