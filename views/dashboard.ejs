@@ -8,31 +8,57 @@
     <%- include('header') %>
 <div class="container">
     <div class="header">
-        <h2>Client Dashboard</h2>
+        <div class="brand-section">
+            <h2>
+                <span class="brand-highlight">M&B</span> IT Solutions
+            </h2>
+    
+            <p class="company-tagline">
+                Client Dashboard
+            </p>
+        </div>
         <div class="header-actions">
-            <a href="/tickets/create?backUrl=<%= backUrl %>" class="btn create-btn">
+            <a href="/tickets/create?backUrl=<%= backUrl %>"
+               class="btn create-btn">
                 + Create Ticket
             </a>
-            <a href="#" onclick="confirmLogout()" class="btn logout-btn">
+            <a href="#"
+               onclick="confirmLogout()"
+               class="btn logout-btn">
                 Logout
             </a>
         </div>
     </div>
 
     <div class="content">
-        <h3>Welcome, <%= user.name %></h3>
-        <p>
-            <strong>Contact:</strong> 
-            <%= user.contact ? user.contact : 'Not provided' %>
-            <button onclick="toggleContactForm(this)" class="btn">Edit</button>
-        </p>
+        <div class="dashboard-card">
+            <h3>Welcome, <%= user.name %></h3>
+            <div class="profile-info">
+                <div class="profile-contact">
+                    <span class="profile-label">
+                        Contact Number
+                    </span>
+                    <span class="profile-value">
+                        <%= user.contact ? user.contact : 'Not provided' %>
+                    </span>
+                </div>
+                <button onclick="toggleContactForm(this)"
+                        class="btn small-btn">
+                    Edit
+                </button>
+            </div>
+            <div id="contactForm" class="contact-card" style="display: none;">
+                <p class="contact-title">
+                    Update your contact number
+                </p>
+                <form id="contactFormSubmit" action="/update-contact" method="POST">
+                    <input type="text" name="contact" placeholder="Enter new contact" maxlength="20" pattern="[0-9]+" required>
+                    <button type="button" class="btn" onclick="confirmSaveContact()">
+                        Save
+                    </button>
+                </form>
         
-        <div id="contactForm" class="contact-card" style="display: none;">
-            <p class="contact-title">Update your contact number</p>
-            <form id="contactFormSubmit" action="/update-contact" method="POST">
-                <input type="text" name="contact" placeholder="Enter new contact" maxlength="20" pattern="[0-9]+" required>
-                <button type="button" class="btn" onclick="confirmSaveContact()">Save</button>
-            </form>
+            </div>
         </div>
 
         <table class="table">
@@ -54,7 +80,11 @@
                     <tr>
                         <td><%= ticket.ticket_id %></td>
                         <td><%= ticket.title %></td>
-                        <td><%= ticket.priority %></td>
+                        <td>
+                            <span class="priority <%= ticket.priority.trim().toLowerCase() %>">
+                                <%= ticket.priority %>
+                            </span>
+                        </td>
                         <td><%= ticket.status %></td>
                         <td><%= new Date(ticket.created_at).toLocaleString('en-PH', {
                             month: 'short',

@@ -2,27 +2,33 @@
     <div class="modal-content">
         <p id="confirmMessage">Are you sure?</p>
         <button id="confirmYes" class="btn">Yes</button>
-        <button onclick="closeModal()" class="btn">Cancel</button>
+        <button id="confirmNo"onclick="closeModal()" class="btn">Cancel</button>
     </div>
 </div>
 
 <script>
     let confirmCallback = null;
-    
     function showConfirm(message, callback) {
         document.getElementById('confirmMessage').innerText = message;
+        document.getElementById('confirmYes').innerText = 'Yes';
+        document.getElementById('confirmNo').style.display = 'inline-block';
         confirmCallback = callback;
-        document.getElementById('confirmModal').style.display = 'block';
+        document.getElementById('confirmModal').style.display = 'flex';
     }
-    
+    function showAlert(message) {
+        document.getElementById('confirmMessage').innerText = message;
+        document.getElementById('confirmYes').innerText = 'OK';
+        document.getElementById('confirmNo').style.display = 'none';
+        confirmCallback = null;
+        document.getElementById('confirmModal').style.display = 'flex';
+    }
     function closeModal() {
         document.getElementById('confirmModal').style.display = 'none';
     }
-    
     document.getElementById('confirmYes').addEventListener('click', function () {
         if (confirmCallback) {
             confirmCallback();
         }
         closeModal();
     });
-    </script>
+</script>

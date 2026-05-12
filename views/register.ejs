@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <link rel="stylesheet" href="/styles/style.css">
+</head>
+<%- include('header') %>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2><span class="brand-highlight">M&B</span> IT Solutions</h2>
+            <p class="company-tagline">Technical Support & Repair Services</p>
+        </div>
+    
+        <div class="content">
+            <h1>Create Account</h1>
+            <p>Register to access the ticketing system.</p>
+    
+            <div class="login-box">
+                <h3>Register</h3>
+    
+                <form id="registerForm" action="/register" method="POST">
+                    <input type="text" name="full_name" placeholder="Full Name" required>
+                    <input type="text" name="contact" placeholder="Contact Number (e.g. 09123456789)" required>
+                    <input type="email" name="email" placeholder="Email" required>
+                    <input type="password" name="password"placeholder="Password" required>
+                    <input type="password" name="confirm_password" placeholder="Confirm Password" required>
+                    <button type="button" class="btn" onclick="confirmRegister()">
+                        Register
+                    </button>
+                </form>
+    
+                <p>Already have an account?</p>
+    
+                <a href="/" class="btn secondary-btn">
+                    Back to Login
+                </a>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
+
+<script>
+    function confirmRegister() {
+        showConfirm("Are you sure all registration details are correct?", function () {
+            document.getElementById("registerForm").submit();
+        });
+    }
+
+    window.onload = function () {
+    const errorMessage = "<%= errorMessage || '' %>";
+    const successMessage = "<%= successMessage || '' %>";
+    if (errorMessage) {
+        showAlert(errorMessage);
+    }
+    if (successMessage) {
+        showAlert(successMessage);
+    }
+    };
+    </script>
+
+    

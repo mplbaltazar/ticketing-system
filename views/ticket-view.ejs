@@ -14,64 +14,91 @@
                 <a href="#" onclick="confirmLogout()" class="btn logout-btn">Logout</a>
             </div>
         </div>
-    <div class="ticket-header">
-        <h2><%= ticket.title %></h2>
-        <div class="ticket-meta">
-            <span class="status"><%= ticket.status %></span>
-            <span class="priority"><%= ticket.priority %></span>
-        </div>
-        <div class="ticket-info">
-            <% if (role === 'technician') { %>
-                <p>
-                    <strong>Customer:</strong> 
-                    <%= ticket.customer_name %>
-                </p>
-            
-                <p>
-                    <strong>Contact:</strong> 
-                    <%= ticket.customer_contact || "N/A" %>
-                </p>
-            <% } %>
-            
-            <% if (role === 'customer') { %>
-                <p>
-                    <strong>Assigned Technician:</strong> 
-                    <%= ticket.technician_name || "Unassigned" %>
-                </p>
-            
-                <p>
-                    <strong>Tech Contact:</strong> 
-                    <%= ticket.technician_contact || "N/A" %>
-                </p>
-            <% } %>
-        </div>
-        <p><strong>Assigned:</strong> 
-            <%= ticket.technician_name || "Waiting for assignment" %>
-        </p>
-        <% if ((role === 'technician' || role === 'admin') && ticket.status !== 'closed') { %>
-            <div class="assign-section">
-                <h4>Assign Ticket</h4>
-                <form method="POST" action="/tickets/assign">
-                    <input type="hidden" name="ticket_id" value="<%= ticket.ticket_id %>">
-                    <select name="assigned_to" required>
-                        <option value="">Select technician</option>
-                        <% technicians.forEach(tech => { %>
-                            <option value="<%= tech.user_id %>" 
-                                <%= ticket.assigned_to == tech.user_id ? 'selected' : '' %>>
-                                
-                                <% if (tech.user_id == userId) { %>
-                                    Assign to Me
-                                <% } else { %>
-                                    <%= tech.full_name %>
-                                <% } %>
-                            </option>
-                        <% }) %>
-                    </select>
-                    <button type="submit" class="btn">Assign</button>
-                </form>
+    <div class="ticket-card">
+        <div class="ticket-header">
+            <h2><%= ticket.title %></h2>
+            <div class="ticket-top">
+                <div>
+                    <h1 class="ticket-title">
+                        <%= ticket.title %>
+                    </h1>
+                    <p class="ticket-id">
+                        Ticket #<%= ticket.ticket_id %>
+                    </p>
+                </div>
+                <div class="ticket-meta">
+                    <span class="status-badge">
+                        <%= ticket.status %>
+                    </span>
+                    <span class="priority p<%= ticket.priority.substring(1) %>">
+                        <%= ticket.priority %>
+                    </span>
+                </div>
             </div>
-        <% } %>
-        <p class="description"><%= ticket.description %></p>
+            <div class="ticket-info-grid">
+                <% if (role === 'technician') { %>
+                    <div class="info-card">
+                        <span class="info-label">Customer</span>
+                        <span class="info-value">
+                            <%= ticket.customer_name %>
+                        </span>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-label">Contact</span>
+                        <span class="info-value">
+                            <%= ticket.customer_contact || "N/A" %>
+                        </span>
+                    </div>
+                <% } %>
+                <% if (role === 'customer') { %>
+                    <div class="info-card">
+                        <span class="info-label">Technician</span>
+                        <span class="info-value">
+                            <%= ticket.technician_name || "Unassigned" %>
+                        </span>
+                    </div>
+                    <div class="info-card">
+                        <span class="info-label">Tech Contact</span>
+                        <span class="info-value">
+                            <%= ticket.technician_contact || "N/A" %>
+                        </span>
+                    </div>
+                <% } %>
+            </div>
+            <p><strong>Assigned:</strong> 
+                <%= ticket.technician_name || "Waiting for assignment" %>
+            </p>
+            <% if ((role === 'technician' || role === 'admin') && ticket.status !== 'closed') { %>
+                <div class="assign-section">
+                    <h4>Assign Ticket</h4>
+                    <form method="POST" action="/tickets/assign">
+                        <input type="hidden" name="ticket_id" value="<%= ticket.ticket_id %>">
+                        <select name="assigned_to" required>
+                            <option value="">Select technician</option>
+                            <% technicians.forEach(tech => { %>
+                                <option value="<%= tech.user_id %>" 
+                                    <%= ticket.assigned_to == tech.user_id ? 'selected' : '' %>>
+                                    
+                                    <% if (tech.user_id == userId) { %>
+                                        Assign to Me
+                                    <% } else { %>
+                                        <%= tech.full_name %>
+                                    <% } %>
+                                </option>
+                            <% }) %>
+                        </select>
+                        <button type="submit" class="btn">Assign</button>
+                    </form>
+                </div>
+            <% } %>
+            <div class="ticket-description">
+                <h3>Description</h3>
+                <p>
+                    <%= ticket.description %>
+                </p>
+            
+            </div>
+        </div>
     </div>
 <div class="comments-section">
     <h4>Comments</h4>
@@ -102,13 +129,13 @@
     <% }) %>
 </div>
 <% if (ticket.status !== 'closed' && (userId === ticket.created_by || userId === ticket.assigned_to || role === 'admin')) { %>
-    <form method="POST" action="/comments/add" class="comment-form">
-        <textarea name="comment" placeholder="Write a reply..." required></textarea>
-
-        <input type="hidden" name="ticket_id" value="<%= ticket.ticket_id %>">
-
-        <button type="submit">Send</button>
-    </form>
+    <form id="commentForm" method="POST" action="/comments/add" class="comment-form">
+    <textarea name="comment" placeholder="Write a reply..." required></textarea>
+    <input type="hidden" name="ticket_id" value="<%= ticket.ticket_id %>">
+    <button type="button" class="btn" onclick="confirmAddComment()">
+        Send
+    </button>
+</form>
 <% } if (ticket.status === 'closed' && (userId === ticket.created_by || role === 'admin')) { %>
     <p class="text-muted">This ticket is closed. Comments are disabled.</p>
     <form method="POST" action="/tickets/reopen" onsubmit="return getReopenReason()">
@@ -133,12 +160,10 @@
 <script>
     function getReopenReason() {
         const reason = prompt("Why are you reopening this ticket?");
-        
         if (!reason || reason.trim() === "") {
             alert("Reopen reason is required.");
             return false;
         }
-    
         document.getElementById("reopen_reason").value = reason;
         return true;
     }
@@ -146,10 +171,24 @@
         showConfirm("Are you sure you want to close this ticket?", function () {
         document.getElementById("closeTicketForm-" + ticketId).submit();
     });
-}
+    }
     function confirmLogout() {
         showConfirm("Are you sure you want to logout?", function () {
             window.location.href = "/logout";
         });
     }
+    function confirmAddComment() {
+        showConfirm("Send this comment?", function () {
+        document.getElementById("commentForm").submit();
+    }
+    );
+    }
+</script>
+
+<% if (modalMessage) { %>
+    <script>
+        window.onload = function () {
+            showAlert("<%= modalMessage %>");
+        };
     </script>
+    <% } %>

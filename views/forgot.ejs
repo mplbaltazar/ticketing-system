@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Forgot Password</title>
+    <link rel="stylesheet" href="/styles/style.css">
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2><span class="brand-highlight">M&B</span> IT Solutions</h2>
+        <p class="company-tagline">Technical Support & Repair Services</p>
+    </div>
+
+    <div class="content">
+        <h1>Reset Account Password</h1>
+        <p>Enter your email and new password to confirm (For testing purpose).</p>
+        <div class="login-box">
+            <form action="/forgot-password" method="POST">
+                <input type="email" name="email" placeholder="Enter your email" required>
+                <input type="password" name="new_password" placeholder="New Password" required>
+                <button type="submit" class="btn">Reset Password</button>
+            </form>
+
+            <a href="/" class="btn">Back to login</a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

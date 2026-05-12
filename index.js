@@ -25,16 +25,40 @@ const db = mysql.createPool({
     queueLimit: 0
 });
 
+app.get('/', (req, res) => {
+    res.render('index');
+});
+
+app.get('/register', (req, res) => {
+    res.render('register', {
+        errorMessage: null,
+        successMessage: null
+    });
+});
+
+app.get('/forgot', (req, res) => {
+    res.render('forgot');
+});
+
 app.post('/register', async (req, res) => {
     const { full_name, contact, email, password, confirm_password } = req.body;
     if (!full_name || !contact || !email || !password || !confirm_password) {
-        return res.send('All fields are required');
+        return res.render('register', {
+            errorMessage: 'All fields are required',
+            successMessage: null
+        });
     }
     if (password !== confirm_password) {
-        return res.send('Passwords do not match');
+        return res.render('register', {
+            errorMessage: 'Passwords do not match',
+            successMessage: null
+        });
     }
     if (contact.length < 10) {
-        return res.send('Invalid contact number');
+        return res.render('register', {
+            errorMessage: 'Invalid contact number',
+            successMessage: null
+        });
     }
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -44,11 +68,17 @@ app.post('/register', async (req, res) => {
             VALUES (?, ?, ?, ?, ?, NOW())
         `;
         await db.query(sql, [email, hashedPassword, full_name, contact, role]);
-        res.send('Registration successful!');
+        res.render('register', {
+            errorMessage: null,
+            successMessage: 'Registration successful!'
+        });
     } catch (err) {
         console.error(err);
         if (err.code === 'ER_DUP_ENTRY') {
-            return res.send('Email already exists');
+            return res.render('register', {
+                errorMessage: 'Email already exists',
+                successMessage: null
+            });
         }
         res.send('Something went wrong');
     }
@@ -486,6 +516,9 @@ app.get('/tickets/create', checkActiveUser, async (req, res) => {
         const role = req.session.user.role;
         const userId = req.session.user.id;
         const backUrl = req.query.backUrl;
+        const modalMessage = req.session.modalMessage || null;
+        const formData = req.session.formData || {};
+        req.session.modalMessage = null;
         if (!role || !userId) {
             return res.redirect('/');
         }
@@ -503,6 +536,8 @@ app.get('/tickets/create', checkActiveUser, async (req, res) => {
             role,
             technicians,
             backUrl,
+            modalMessage,
+            formData,
             currentUserId: role === 'technician' ? userId : null
         });
 
@@ -515,24 +550,35 @@ app.get('/tickets/create', checkActiveUser, async (req, res) => {
 app.post('/tickets/create', checkActiveUser, async (req, res) => {
     try {
         const { title, description, priority, assigned_to } = req.body;
+        const formData = {title, description, priority, assigned_to};
         const userId = req.session.user.id;
         const role = req.session.user.role;
+        const backUrl = req.get('Referrer') || '/dashboard';
         if (!title || !description || !priority) {
-            return res.send("All fields are required");
+            req.session.modalMessage = "All fields are required";
+            req.session.formData = formData;
+            return res.redirect(backUrl);
         }
         const cleanTitle = title.trim();
         const cleanDescription = description.trim();
         if (cleanTitle.length < 5 || cleanTitle.length > 255) {
-            return res.send("Title must be between 5 and 255 characters");
+            req.session.modalMessage = "Title must be between 5 and 255 characters";
+            req.session.formData = formData;
+            return res.redirect(backUrl);
         }
         if (cleanDescription.length < 10 || cleanDescription.length > 2000) {
-            return res.send("Description must be between 10 and 2000 characters");
+            req.session.modalMessage = "Description must be between 10 and 2000 characters";
+            req.session.formData = formData;
+            return res.redirect(backUrl);
         }
         const allowedPriorities = ['P1', 'P2', 'P3', 'P4'];
         if (!allowedPriorities.includes(priority)) {
-            return res.send("Invalid priority");
+            req.session.modalMessage = "Invalid priority";
+            req.session.formData = formData;
+            return res.redirect(backUrl);
         }
         let assignedUser = null;
+        
         if ((role === 'technician' || role === 'admin') && assigned_to) {
             if (isNaN(assigned_to)) {
                 return res.send("Invalid technician ID");
@@ -566,6 +612,7 @@ app.post('/tickets/create', checkActiveUser, async (req, res) => {
             VALUES (?, ?, ?)
         `;
         await db.query(commentSql, [ticketId, userId, cleanDescription]);
+        req.session.formData = null;
         if (role === 'technician') {
             return res.redirect('/technician');
         } else if (role === 'admin') {
@@ -625,12 +672,15 @@ app.get('/tickets/view/:id', checkActiveUser, async (req, res) => {
         if (!isOwner && !isAssignedTech && !isAdmin && !isTechnician) {
             return res.send("Unauthorized access");
         }
+        const modalMessage = req.session.modalMessage; 
+        req.session.modalMessage = null;
         res.render('ticket-view', {
             ticket,
             comments,
             technicians,
             role,
             userId,
+            modalMessage,
             backUrl: backUrl || (
                 role === 'admin'
                     ? '/admin'
@@ -639,6 +689,7 @@ app.get('/tickets/view/:id', checkActiveUser, async (req, res) => {
                     : '/dashboard'
             )
         });
+        req.session.modalMessage = null;
     } catch (err) {
         console.error("View ticket error:", err);
         res.status(500).send("Error loading ticket");
@@ -770,15 +821,21 @@ app.post('/comments/add', checkActiveUser, async (req, res) => {
         const { comment, ticket_id } = req.body;
         const userId = req.session.user.id;
         const role = req.session.user.role;
+        const backUrl = req.get('Referrer') || `/tickets/view/${ticket_id}`;
         if (!ticket_id || isNaN(ticket_id)) {
-            return res.send("Invalid ticket ID");
+            if (!ticket_id || isNaN(ticket_id)) {
+                req.session.modalMessage = "Invalid ticket ID";
+                return res.redirect(backUrl);
+            }
         }
         if (!comment || comment.trim() === '') {
-            return res.send("Comment cannot be empty");
+            req.session.modalMessage ="Comment cannot be empty";
+            return res.redirect(backUrl);
         }
         const cleanComment = comment.trim();
         if (cleanComment.length > 1000) {
-            return res.send("Comment is too long");
+            req.session.modalMessage = "Comment is too long";
+            return res.redirect(backUrl);
         }
         const checkSql = `
             SELECT status, created_by, assigned_to

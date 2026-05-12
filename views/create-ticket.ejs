@@ -8,57 +8,154 @@
 <body>
 <div class="container">
     <div class="header">
-        <h2>Create a New Ticket</h2>
-	    <div class="header-actions">
-        	<a href="<%= backUrl %>" class="btn">Back</a>
-        	<a href="#" onclick="confirmLogout()" class="btn logout-btn">Logout</a>
-	    </div>
+        <div class="brand-section">
+            <h2>
+                <span class="brand-highlight">M&B</span> IT Solutions
+            </h2>
+    
+            <p class="company-tagline">
+                Client Dashboard
+            </p>
+        </div>
+        <div class="header-actions">
+            <a href="<%= backUrl %>" class="btn">Back</a>
+            <a href="#"
+               onclick="confirmLogout()"
+               class="btn logout-btn">
+                Logout
+            </a>
+        </div>
     </div>
-    <form id="createTicketForm" action="/tickets/create" method="POST" class="form-create">
-        <label>Title</label>
-        <input type="text" name="title" required>
-        <label>Description (Describe your issue)</label>
-        <textarea name="description" required></textarea>
-        <small>This will be the first message in your ticket conversation</small>
-        <label>Priority</label>
-            <select name="priority">
-                <option value="P1">P1 - Critical</option>
-                <option value="P2">P2 - High</option>
-                <option value="P3" selected>P3 - Medium</option>
-                <option value="P4">P4 - Low</option>
-                <option value="P5">P5 - Very Low</option>
-            </select>
-
-        <% if (role === 'technician') { %>
-            <select name="assigned_to">
-                <option value="">Unassigned</option>
-                <option value="<%= currentUserId %>" selected>Assign to Me</option>
-                <% technicians.forEach(tech => { %>
-                    <% if (tech.user_id !== currentUserId) { %>
-                        <option value="<%= tech.user_id %>">
-                            <%= tech.full_name %>
-                        </option>
-                    <% } %>
-                <% }) %>
-            </select>
-    <% } %>
-
-    <button type="button" class="btn create-btn" onclick="confirmCreateTicket()">Create Ticket</button>
-
-    </form>
+    <div class="content">
+        <div class="form-card">
+            <div class="page-title">
+                <h1>Create New Ticket</h1>
+                <p>
+                    Submit a support request for technical assistance.
+                </p>
+            </div>
+            <form id="createTicketForm" action="/tickets/create" method="POST" class="form-create">
+          <div class="form-group">
+              <label>Title</label>
+              <input type="text" name="title" placeholder="Enter ticket title" value="<%= formData.title || '' %>" required>
+          </div>
+          <div class="form-group">
+              <label>Description</label>
+              <textarea name="description" placeholder="Describe the issue in detail..."required><%= formData.description || '' %></textarea>
+              <small>
+                This will become the first message in the ticket conversation.
+              </small>
+          </div>
+          <div class="form-group">
+              <label>Priority</label>
+              <select name="priority">
+                <option value="P1"
+                <%= formData.priority === 'P1' ? 'selected' : '' %>>
+                    P1 - Critical
+                </option>
+                <option value="P2"
+                <%= formData.priority === 'P2' ? 'selected' : '' %>>
+                    P2 - High
+                </option>
+                <option value="P3"
+                <%= (!formData.priority || formData.priority === 'P3') ? 'selected' : '' %>>
+                    P3 - Medium
+                </option>
+                <option value="P4"
+                <%= formData.priority === 'P4' ? 'selected' : '' %>>
+                    P4 - Low
+                </option>
+                <option value="P5"
+                <%= formData.priority === 'P5' ? 'selected' : '' %>>
+                    P5 - Very Low
+                </option>
+              </select>
+          </div>
+      
+          <% if (role === 'technician') { %>
+      
+          <div class="form-group">
+      
+              <label>Assign Technician</label>
+      
+              <select name="assigned_to">
+      
+                  <option value="">Unassigned</option>
+      
+                  <option value="<%= currentUserId %>" selected>
+                      Assign to Me
+                  </option>
+      
+                  <% technicians.forEach(tech => { %>
+      
+                      <% if (tech.user_id !== currentUserId) { %>
+      
+                          <option value="<%= tech.user_id %>">
+                              <%= tech.full_name %>
+                          </option>
+      
+                      <% } %>
+      
+                  <% }) %>
+      
+              </select>
+      
+          </div>
+      
+          <% } %>
+      
+          <div class="form-actions">
+            <button type="button" class="btn secondary-btn" onclick="clearTicketForm()">
+                Clear
+            </button>
+            <button type="button" class="btn create-btn" onclick="confirmCreateTicket()">
+                Create Ticket
+            </button>
+        </div>
+      </form>
+        </div>
+    </div>
 </div>
 </body>
 </html>
 
 <script>
     function confirmLogout() {
-        showConfirm("Are you sure you want to logout?", function () {
-            window.location.href = "/logout";
-        });
+        showConfirm(
+            "Are you sure you want to logout?",
+            function () {
+                window.location.href = "/logout";
+            }
+        );
     }
     function confirmCreateTicket() {
-    showConfirm("Are you sure you want to create this ticket?", function () {
-        document.getElementById("createTicketForm").submit();
-    });
-}
+        showConfirm(
+            "Are you sure you want to create this ticket?",
+            function () {
+                document.getElementById("createTicketForm").submit();
+            }
+        );
+    }
+    function clearTicketForm() {
+    showConfirm(
+        "Clear all entered information?",
+        function () {
+            const form =
+                document.getElementById("createTicketForm");
+            form.title.value = "";
+            form.description.value = "";
+            form.priority.value = "P3";
+            if (form.assigned_to) {
+                form.assigned_to.selectedIndex = 0;
+            }
+        }
+    );
+    }
 </script>
+<% if (modalMessage) { %>
+    <script>
+        window.onload = function () {
+            showAlert("<%= modalMessage %>");
+        };
+    </script>
+    <% } %>
