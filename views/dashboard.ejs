@@ -61,49 +61,87 @@
             </div>
         </div>
 
-        <table class="table">
-            <tr>
-                <th>ID</th>
-                <th>Title</th>
-                <th>Priority</th>
-                <th>Status</th>
-                <th>Date</th>
-                <th>Actions</th>
-            </tr>
+            <div class="ticket-section">
 
-            <% if (tickets.length === 0) { %>
-                <tr>
-                    <td colspan="5">No tickets found</td>
-                </tr>
-            <% } else { %>
-                <% tickets.forEach(ticket => { %>
+                <div class="ticket-section-header">
+            
+                    <div class="ticket-title-group">
+                        <h3>📋 My Tickets</h3>
+            
+                        <span class="ticket-count">
+                            <%= tickets.length %> Total Tickets
+                        </span>
+                    </div>
+            
+                </div>
+            
+                <table class="table">
+            
                     <tr>
-                        <td><%= ticket.ticket_id %></td>
-                        <td><%= ticket.title %></td>
-                        <td>
-                            <span class="priority <%= ticket.priority.trim().toLowerCase() %>">
-                                <%= ticket.priority %>
-                            </span>
-                        </td>
-                        <td><%= ticket.status %></td>
-                        <td><%= new Date(ticket.created_at).toLocaleString('en-PH', {
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        }) %></td>
-                        <td>
-                            
-                            <a href="/tickets/view/<%= ticket.ticket_id %>" class="btn">
-                                View
-                            </a>
-                        </td>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
                     </tr>
-                <% }) %>
-            <% } %>
-
-        </table>
-    </div>
+            
+                    <% if (tickets.length === 0) { %>
+            
+                        <tr>
+                            <td colspan="6" class="empty-state">
+                                📭 No tickets found
+                            </td>
+                        </tr>
+            
+                    <% } else { %>
+            
+                        <% tickets.forEach(ticket => { %>
+            
+                            <tr>
+            
+                                <td><%= ticket.ticket_id %></td>
+            
+                                <td><%= ticket.title %></td>
+            
+                                <td>
+                                    <span class="priority <%= ticket.priority.trim().toLowerCase() %>">
+                                        <%= ticket.priority %>
+                                    </span>
+                                </td>
+            
+                                <td>
+                                    <span class="status-badge status-<%= ticket.status.trim().toLowerCase() %>">
+                                        <%= ticket.status %>
+                                    </span>
+                                </td>
+            
+                                <td>
+                                    <%= new Date(ticket.created_at).toLocaleString('en-PH', {
+                                        month: 'short',
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    }) %>
+                                </td>
+            
+                                <td>
+                                    <a href="/tickets/view/<%= ticket.ticket_id %>" class="btn">
+                                        View
+                                    </a>
+                                </td>
+            
+                            </tr>
+            
+                        <% }) %>
+            
+                    <% } %>
+            
+                </table>
+            
+            </div>
+    
+</div>
 
 </div>
 

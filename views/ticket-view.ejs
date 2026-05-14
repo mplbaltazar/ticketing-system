@@ -8,7 +8,15 @@
 <body>
     <div class="container">
         <div class="header">
-            <h2>Ticket View</h2>
+            <div class="brand-section">
+                <h2>
+                    <span class="brand-highlight">M&B</span> IT Solutions
+                </h2>
+        
+                <p class="company-tagline">
+                    Ticket View
+                </p>
+            </div>
             <div class="header-actions">
                 <a href="<%= backUrl %>" class="btn">Back</a>
                 <a href="#" onclick="confirmLogout()" class="btn logout-btn">Logout</a>
@@ -16,7 +24,6 @@
         </div>
     <div class="ticket-card">
         <div class="ticket-header">
-            <h2><%= ticket.title %></h2>
             <div class="ticket-top">
                 <div>
                     <h1 class="ticket-title">
@@ -34,6 +41,7 @@
                         <%= ticket.priority %>
                     </span>
                 </div>
+                
             </div>
             <div class="ticket-info-grid">
                 <% if (role === 'technician') { %>
@@ -44,7 +52,7 @@
                         </span>
                     </div>
                     <div class="info-card">
-                        <span class="info-label">Contact</span>
+                        <span class="info-label">Client Contact</span>
                         <span class="info-value">
                             <%= ticket.customer_contact || "N/A" %>
                         </span>
@@ -65,31 +73,122 @@
                     </div>
                 <% } %>
             </div>
-            <p><strong>Assigned:</strong> 
-                <%= ticket.technician_name || "Waiting for assignment" %>
-            </p>
+            
+            
             <% if ((role === 'technician' || role === 'admin') && ticket.status !== 'closed') { %>
-                <div class="assign-section">
-                    <h4>Assign Ticket</h4>
-                    <form method="POST" action="/tickets/assign">
-                        <input type="hidden" name="ticket_id" value="<%= ticket.ticket_id %>">
+            
+            <div class="ticket-actions-panel">
+            
+                <h4>Technician Actions</h4>
+                <p>
+                    <strong>Assigned:</strong> 
+                    <%= ticket.technician_name || "Waiting for assignment" %>
+                </p>
+                <div class="action-row">
+            
+                    <form method="POST"
+                          action="/tickets/assign"
+                          class="inline-form">
+            
+                        <input type="hidden"
+                               name="ticket_id"
+                               value="<%= ticket.ticket_id %>">
+            
                         <select name="assigned_to" required>
-                            <option value="">Select technician</option>
+            
+                            <option value="">
+                                Select technician
+                            </option>
+            
                             <% technicians.forEach(tech => { %>
-                                <option value="<%= tech.user_id %>" 
+            
+                                <option value="<%= tech.user_id %>"
                                     <%= ticket.assigned_to == tech.user_id ? 'selected' : '' %>>
-                                    
+            
                                     <% if (tech.user_id == userId) { %>
                                         Assign to Me
                                     <% } else { %>
                                         <%= tech.full_name %>
                                     <% } %>
+            
                                 </option>
+            
                             <% }) %>
+            
                         </select>
-                        <button type="submit" class="btn">Assign</button>
+            
+                        <button type="submit" class="btn">
+                            Assign
+                        </button>
+            
                     </form>
+            
                 </div>
+            
+                <% if (
+                    ticket.status !== 'closed' &&
+                    (
+                        role === 'admin' ||
+                        userId === ticket.assigned_to
+                    )
+                ) { %>
+            
+                <div class="action-row">
+            
+                    <form id="priorityForm"
+                          action="/tickets/update-priority"
+                          method="POST"
+                          class="inline-form">
+            
+                        <input type="hidden"
+                               name="ticket_id"
+                               value="<%= ticket.ticket_id %>">
+            
+                        <select name="priority" required>
+            
+                            <option value="P1"
+                                <%= ticket.priority === 'P1' ? 'selected' : '' %>>
+                                P1 - Critical
+                            </option>
+            
+                            <option value="P2"
+                                <%= ticket.priority === 'P2' ? 'selected' : '' %>>
+                                P2 - High
+                            </option>
+            
+                            <option value="P3"
+                                <%= ticket.priority === 'P3' ? 'selected' : '' %>>
+                                P3 - Medium
+                            </option>
+            
+                            <option value="P4"
+                                <%= ticket.priority === 'P4' ? 'selected' : '' %>>
+                                P4 - Low
+                            </option>
+            
+                            <option value="P5"
+                                <%= ticket.priority === 'P5' ? 'selected' : '' %>>
+                                P5 - Very Low
+                            </option>
+            
+                        </select>
+            
+                        <button type="button"
+                                class="btn"
+                                onclick="confirmPriorityUpdate()">
+            
+                            Update Priority
+            
+                        </button>
+            
+                    </form>
+            
+                </div>
+            
+                <% } %>
+            
+            </div>
+            
             <% } %>
             <div class="ticket-description">
                 <h3>Description</h3>
@@ -130,7 +229,7 @@
 </div>
 <% if (ticket.status !== 'closed' && (userId === ticket.created_by || userId === ticket.assigned_to || role === 'admin')) { %>
     <form id="commentForm" method="POST" action="/comments/add" class="comment-form">
-    <textarea name="comment" placeholder="Write a reply..." required></textarea>
+    <textarea name="comment" placeholder="Write a reply..." required><%= formData || '' %></textarea>
     <input type="hidden" name="ticket_id" value="<%= ticket.ticket_id %>">
     <button type="button" class="btn" onclick="confirmAddComment()">
         Send
@@ -183,6 +282,11 @@
     }
     );
     }
+    function confirmPriorityUpdate() {
+    showConfirm("Update ticket priority?", function () {
+        document.getElementById("priorityForm").submit();
+    });
+}
 </script>
 
 <% if (modalMessage) { %>

@@ -228,37 +228,58 @@ input:focus, textarea:focus, select:focus {
     background: #bb2d3b;
 }
 
-.table .btn,
-.small-btn {
-    padding: 8px 16px;
-    font-size: 14px;
-    border-radius: 10px;
+.ticket-section {
+    background: #1f2a44;
+    border-radius: 20px;
+    padding: 30px;
+    margin-top: 30px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.table, table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
+.ticket-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.ticket-title-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.ticket-count {
+    background: rgba(255,255,255,0.08);
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+}
+
+.ticket-actions {
+    display: flex;
+    gap: 10px;
 }
 
 .table {
     width: 100%;
     border-collapse: collapse;
     overflow: hidden;
-    border-radius: 14px;
-    background: rgba(255,255,255,0.04);
+    border-radius: 15px;
 }
 
 .table th {
     background: rgba(255,255,255,0.08);
-    color: #e2e8f0;
-    padding: 18px;
+    padding: 16px;
     text-align: left;
 }
 
 .table td {
-    padding: 18px;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 18px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
 .table tr:hover {
@@ -299,6 +320,35 @@ input:focus, textarea:focus, select:focus {
 .priority.p3,
 .priority.p4 {
     color: white !important;
+}
+
+.ticket-actions-panel {
+    margin-top: 25px;
+    padding: 20px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.ticket-actions-panel h4 {
+    margin-bottom: 18px;
+}
+
+.action-row {
+    margin-bottom: 15px;
+}
+
+.inline-form {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.inline-form select {
+    flex: 1;
+    min-width: 220px;
+    max-width: 380px;
 }
 
 .page-title {
@@ -542,12 +592,28 @@ input:focus, textarea:focus, select:focus {
 }
 
 .status-badge {
-    padding: 8px 14px;
-    border-radius: 999px;
-    background: rgba(59,130,246,0.15);
-    color: #60a5fa;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
     font-weight: bold;
-    text-transform: capitalize;
+}
+.status-open {
+    background: #f4e7b5;
+    color: #7a5d00;
+}
+
+.status-in-progress {
+    background: #cce5ff;
+    color: #004085;
+}
+
+.status-closed {
+    background: #d4edda;
+    color: #155724;
+}
+
+.p1-row {
+    border-left: 5px solid #dc3545;
 }
 
 .info-card {
@@ -571,9 +637,12 @@ input:focus, textarea:focus, select:focus {
     font-weight: 600;
 }
 
-.priority {
-    background: #fff3cd;
-    color: #856404;
+
+
+.empty-state {
+    text-align: center;
+    padding: 30px;
+    opacity: 0.8;
 }
 
 .admin-grid {

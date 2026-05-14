@@ -53,3 +53,11 @@
         });
     }
 </script>
+
+<% if (modalMessage) { %>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            showModal("<%= modalMessage %>");
+        });
+    </script>
+    <% } %>

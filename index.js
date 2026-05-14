@@ -139,6 +139,8 @@ app.post('/login', async (req, res) => {
 app.get('/dashboard', checkActiveUser, async (req, res) => {
     try {
         const sessionUser = req.session.user;
+        const modalMessage = req.session.modalMessage || null;
+        req.session.modalMessage = null;
         if (!sessionUser || !sessionUser.id) {
             return res.redirect('/');
         }
@@ -165,7 +167,8 @@ app.get('/dashboard', checkActiveUser, async (req, res) => {
         res.render('dashboard', {
             user: sessionUser,
             backUrl:'/dashboard',
-            tickets
+            tickets,
+            modalMessage
         });
     } catch (err) {
         console.error("Dashboard Error:", err);
@@ -176,6 +179,8 @@ app.get('/dashboard', checkActiveUser, async (req, res) => {
 app.get('/technician', checkActiveUser, requireRole('technician'), async (req, res) => {
     try {
         const sessionUser = req.session.user;
+        const modalMessage = req.session.modalMessage || null;
+        req.session.modalMessage = null;
         if (!sessionUser || !sessionUser.id) {
             return res.redirect('/');
         }
@@ -191,9 +196,10 @@ app.get('/technician', checkActiveUser, requireRole('technician'), async (req, r
         LEFT JOIN users u ON t.assigned_to = u.user_id
         WHERE 
             t.status != 'closed'
+            AND t.priority = 'P1'
             AND (
-                t.assigned_to = ? 
-                OR (t.priority = 'P1' AND t.assigned_to IS NULL)
+                t.assigned_to = ?
+                OR t.assigned_to IS NULL
             )
         ORDER BY t.created_at DESC
         `;
@@ -202,7 +208,9 @@ app.get('/technician', checkActiveUser, requireRole('technician'), async (req, r
         const tickets = Array.isArray(rows) ? rows : [];
         res.render('technician-dashboard', {
             user: sessionUser,
-            tickets
+            tickets,
+            modalMessage,
+            backUrl:'/technician',
         });
     } catch (err) {
         console.error("Technician Dashboard Error:", err);
@@ -213,6 +221,8 @@ app.get('/technician', checkActiveUser, requireRole('technician'), async (req, r
 app.get('/admin', checkActiveUser, requireRole('admin'), async (req, res) => {
     try {
         const sessionUser = req.session.user;
+        const modalMessage = req.session.modalMessage || null;
+        req.session.modalMessage = null;
         if (!sessionUser || !sessionUser.id) {
             return res.redirect('/');
         }
@@ -242,7 +252,8 @@ app.get('/admin', checkActiveUser, requireRole('admin'), async (req, res) => {
         const tickets = Array.isArray(rows) ? rows : [];
         res.render('admin', {
             user: sessionUser,
-            tickets
+            tickets,
+            modalMessage
         });
     } catch (err) {
         console.error("Admin Dashboard Error:", err);
@@ -631,6 +642,8 @@ app.get('/tickets/view/:id', checkActiveUser, async (req, res) => {
     try {
         const ticketId = req.params.id;
         const backUrl = req.query.backUrl;
+        const formData = req.session.formData || '';
+        req.session.formData = null;
         if (!ticketId || isNaN(ticketId)) {
             return res.send("Invalid ticket ID");
         }
@@ -680,6 +693,7 @@ app.get('/tickets/view/:id', checkActiveUser, async (req, res) => {
             technicians,
             role,
             userId,
+            formData,
             modalMessage,
             backUrl: backUrl || (
                 role === 'admin'
@@ -816,6 +830,69 @@ app.post('/tickets/assign', checkActiveUser, requireRole('technician', 'admin'),
     }
 });
 
+app.post('/tickets/update-priority', checkActiveUser, async (req, res) => {
+    try {
+        const { ticket_id, priority } = req.body;
+        const userId = req.session.user.id;
+        const role = req.session.user.role;
+        const userName = req.session.user.name;
+        const allowedPriorities = ['P1', 'P2', 'P3', 'P4', 'P5'];
+        if (!allowedPriorities.includes(priority)) {
+            req.session.modalMessage = "Invalid priority value";
+            return res.redirect('back');
+        }
+        const ticketSql = `
+            SELECT *
+            FROM tickets
+            WHERE ticket_id = ?
+        `;
+        const [rows] = await db.query(ticketSql, [ticket_id]);
+        if (rows.length === 0) {
+            req.session.modalMessage = "Ticket not found";
+            return res.redirect('back');
+        }
+        const ticket = rows[0];
+        if (ticket.status === 'closed') {
+            req.session.modalMessage = "Cannot update closed ticket";
+            return res.redirect('back');
+        }
+        const isAssignedTech = ticket.assigned_to === userId;
+        const isAdmin = role === 'admin';
+        if (!isAssignedTech && !isAdmin) {
+            req.session.modalMessage = "Unauthorized";
+            return res.redirect('back');
+        }
+        if (ticket.priority === priority) {
+            req.session.modalMessage = "Ticket already has this priority";
+            return res.redirect('back');
+        }
+        const oldPriority = ticket.priority;
+        const updateSql = `
+            UPDATE tickets
+            SET priority = ?, updated_at = NOW()
+            WHERE ticket_id = ?
+        `;
+        await db.query(updateSql, [priority, ticket_id]);
+        const systemComment =
+            `Priority updated from ${oldPriority} to ${priority} by ${userName}`;
+        const commentSql = `
+            INSERT INTO ticket_comments
+            (ticket_id, user_id, comment)
+            VALUES (?, ?, ?)
+        `;
+        await db.query(commentSql, [
+            ticket_id,
+            userId,
+            systemComment
+        ]);
+        req.session.modalMessage = "Ticket priority updated";
+        res.redirect(`/tickets/view/${ticket_id}`);
+    } catch (err) {
+        console.error("Update Priority Error:", err);
+        res.status(500).send("Error updating priority");
+    }
+});
+
 app.post('/comments/add', checkActiveUser, async (req, res) => {
     try {
         const { comment, ticket_id } = req.body;
@@ -823,10 +900,8 @@ app.post('/comments/add', checkActiveUser, async (req, res) => {
         const role = req.session.user.role;
         const backUrl = req.get('Referrer') || `/tickets/view/${ticket_id}`;
         if (!ticket_id || isNaN(ticket_id)) {
-            if (!ticket_id || isNaN(ticket_id)) {
-                req.session.modalMessage = "Invalid ticket ID";
-                return res.redirect(backUrl);
-            }
+            req.session.modalMessage = "Invalid ticket ID";
+            return res.redirect(backUrl);
         }
         if (!comment || comment.trim() === '') {
             req.session.modalMessage ="Comment cannot be empty";
@@ -835,6 +910,7 @@ app.post('/comments/add', checkActiveUser, async (req, res) => {
         const cleanComment = comment.trim();
         if (cleanComment.length > 1000) {
             req.session.modalMessage = "Comment is too long";
+            req.session.formData = comment;
             return res.redirect(backUrl);
         }
         const checkSql = `
@@ -861,6 +937,7 @@ app.post('/comments/add', checkActiveUser, async (req, res) => {
             VALUES (?, ?, ?)
         `;
         await db.query(insertSql, [ticket_id, userId, cleanComment]);
+        req.session.formData = null;
         res.redirect(`/tickets/view/${ticket_id}`);
     } catch (err) {
         console.error("Add Comment Error:", err);
@@ -869,34 +946,40 @@ app.post('/comments/add', checkActiveUser, async (req, res) => {
 });
 
 app.post('/update-contact', checkActiveUser, async (req, res) => {
+    let { contact, redirectTo } = req.body;
     try {
         const userId = req.session.user.id;
-        let { contact, redirectTo } = req.body;
+        const allowedRedirects = ['/dashboard', '/admin', '/technician'];
+        if (!allowedRedirects.includes(redirectTo)) {
+            return res.redirect(redirectTo || '/dashboard');
+        }
         if (!contact) {
-            return res.send("Contact number is required");
+            req.session.modalMessage = "Contact number is required";
+            return res.redirect(redirectTo);
         }
         contact = contact.trim();
         if (contact.length < 10 || contact.length > 20) {
-            return res.send("Contact number must be between 10 and 20 digits");
+            req.session.modalMessage = "Contact number must be between 10 and 20 digits";
+            return res.redirect(redirectTo);
         }
         if (!/^[0-9]+$/.test(contact)) {
-            return res.send("Contact number must contain only numbers");
-        }
-        const allowedRedirects = ['/dashboard', '/admin', '/technician'];
-        if (!allowedRedirects.includes(redirectTo)) {
-            redirectTo = '/dashboard';
+            req.session.modalMessage = "Contact number must contain only numbers";
+            return res.redirect(redirectTo);
         }
         const sql = "UPDATE users SET contact = ? WHERE user_id = ?";
         const [result] = await db.query(sql, [contact, userId]);
-
         if (result.affectedRows === 0) {
-            return res.send("User not found");
+            req.session.modalMessage = "User not found";
+            return res.redirect(redirectTo);
         }
         req.session.user.contact = contact;
+        req.session.modalMessage = "Contact number updated successfully";
         res.redirect(redirectTo);
+
     } catch (err) {
         console.error("Update Contact Error:", err);
-        res.status(500).send("Error Updating Contact");
+        req.session.modalMessage = "Error updating contact";
+        res.redirect('/dashboard');
     }
 });
 
